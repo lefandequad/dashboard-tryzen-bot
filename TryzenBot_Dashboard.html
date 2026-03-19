@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TryzenBot — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #080d18;
+  --bg2:       #0d1526;
+  --bg3:       #111d35;
+  --surface:   #152240;
+  --surface2:  #1b2d52;
+  --border:    #1e3460;
+  --border2:   #2a4a8a;
+  --navy:      #1B2A4A;
+  --blue:      #2E5BBA;
+  --blue2:     #3a72e8;
+  --gold:      #C9A84C;
+  --gold2:     #e8c56a;
+  --text:      #d6e4ff;
+  --muted:     #6b89c4;
+  --dim:       #3a5080;
+  --success:   #1a6b4a;
+  --error:     #8b1a2a;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── BACKGROUND ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(46,91,186,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(201,168,76,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(27,42,74,0.4) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grid de fond */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(46,91,186,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46,91,186,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LAYOUT ── */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+
+/* ── HEADER ── */
+header {
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,13,24,0.85);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--blue), var(--navy));
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.logo-text span { color: var(--gold); }
+
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(26,107,74,0.15);
+  border: 1px solid rgba(26,107,74,0.4);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 11px;
+  color: #4ecf96;
+  letter-spacing: 0.08em;
+}
+
+.dot-live {
+  width: 7px; height: 7px;
+  background: #4ecf96;
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+nav { display: flex; gap: 4px; }
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+nav a:hover { color: var(--text); background: rgba(46,91,186,0.15); }
+nav a.active { color: var(--blue2); background: rgba(46,91,186,0.18); }
+
+.btn-invite {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--blue), #1a3a8a);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 20px;
+  color: white;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(46,91,186,0.3);
+}
+.btn-invite:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(46,91,186,0.45); }
+
+/* ── HERO ── */
+.hero {
+  padding: 80px 0 60px;
+  text-align: center;
+  animation: fadeDown 0.7s ease both;
+}
+
+.hero-tag {
+  display: inline-block;
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.3);
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.05;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.hero p {
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 480px;
+  margin: 0 auto 40px;
+  line-height: 1.8;
+}
+
+/* Stats hero */
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.hero-stat {
+  text-align: center;
+  animation: fadeUp 0.6s ease both;
+}
+
+.hero-stat:nth-child(2) { animation-delay: 0.1s; }
+.hero-stat:nth-child(3) { animation-delay: 0.2s; }
+
+.hero-stat .num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--gold);
+  display: block;
+}
+
+.hero-stat .label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── SECTION ── */
+.section { padding: 60px 0; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.section-num {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+/* ── GRILLES ── */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+@media(max-width:900px) { .grid-3, .grid-4 { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:600px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
+/* ── STAT CARDS ── */
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  animation: fadeUp 0.5s ease both;
+}
+
+.stat-icon {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-icon.blue { background: rgba(46,91,186,0.2); border: 1px solid rgba(46,91,186,0.3); }
+.stat-icon.gold { background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.25); }
+.stat-icon.green { background: rgba(26,107,74,0.2); border: 1px solid rgba(26,107,74,0.3); }
+.stat-icon.red { background: rgba(139,26,42,0.2); border: 1px solid rgba(139,26,42,0.3); }
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── COMMANDES ── */
+.cmd-category {
+  margin-bottom: 32px;
+  animation: fadeUp 0.5s ease both;
+}
+
+.cmd-cat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cmd-cat-icon {
+  width: 32px; height: 32px;
+  background: rgba(46,91,186,0.2);
+  border: 1px solid rgba(46,91,186,0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.cmd-cat-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cmd-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.cmd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.cmd-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: default;
+}
+
+.cmd-item:hover {
+  border-color: var(--border2);
+  background: var(--surface);
+}
+
+.cmd-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--blue2);
+  font-family: 'DM Mono', monospace;
+}
+
+.cmd-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.cmd-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  align-self: flex-start;
+}
+
+.badge-staff { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
+.badge-all   { background: rgba(46,91,186,0.15); color: #7aaaf8; border: 1px solid rgba(46,91,186,0.25); }
+.badge-admin { background: rgba(139,26,42,0.15); color: #e07080; border: 1px solid rgba(139,26,42,0.25); }
+
+/* ── SEARCH ── */
+.search-wrap {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.search-wrap input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 48px 14px 18px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-wrap input:focus {
+  border-color: var(--border2);
+  box-shadow: 0 0 0 3px rgba(46,91,186,0.12);
+}
+
+.search-wrap input::placeholder { color: var(--dim); }
+
+.search-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--dim);
+  font-size: 16px;
+}
+
+/* ── CONFIG SECTION ── */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.config-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.config-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.config-dot.required { background: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.5); }
+.config-dot.optional { background: var(--blue); box-shadow: 0 0 6px rgba(46,91,186,0.5); }
+
+.config-var {
+  font-size: 12px;
+  color: var(--blue2);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 4px;
+}
+
+.config-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 0;
+  text-align: center;
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+}
+
+footer span { color: var(--gold); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp   { from{opacity:0;transform:translateY(12px)}  to{opacity:1;transform:translateY(0)} }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 48px 0; }
+
+/* ── HIGHLIGHT BOX ── */
+.highlight {
+  background: rgba(46,91,186,0.08);
+  border: 1px solid rgba(46,91,186,0.25);
+  border-left: 3px solid var(--blue2);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-size: 12px;
+  color: #7aaaf8;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.highlight strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div class="logo-text">Tryzen<span>Bot</span></div>
+    </div>
+    <nav>
+      <a href="#commandes" class="active">Commandes</a>
+      <a href="#fonctionnalites">Fonctionnalités</a>
+    </nav>
+    <a href="https://discord.com/oauth2/authorize?client_id=1483894390006218954" target="_blank" class="btn-invite">➕ Ajouter le bot</a>
+    <div class="header-badge">
+      <div class="dot-live"></div>
+      EN LIGNE
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="container">
+  <div class="hero">
+    <div class="hero-tag">✦ Documentation officielle</div>
+    <h1>Tout ce qu'il faut savoir<br>sur <em>TryzenBot</em></h1>
+    <p>Retrouve ici toutes les commandes, la configuration et les fonctionnalités disponibles sur le serveur.</p>
+    <div style="margin-bottom:40px">
+      <a href="https://discord.com/oauth2/authorize?client_id=1483894390006218954" target="_blank" class="btn-invite" style="font-size:14px;padding:13px 32px;border-radius:10px;box-shadow:0 6px 28px rgba(46,91,186,0.4)">
+        ➕ Ajouter TryzenBot à mon serveur
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="num" id="total-cmds">47</span>
+        <span class="label">Commandes</span>
+      </div>
+      <div class="hero-stat">
+        <span class="num">17</span>
+        <span class="label">Modules</span>
+      </div>
+      <div class="hero-stat">
+        <span class="num">24/7</span>
+        <span class="label">En ligne</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS RAPIDES -->
+  <div class="grid-4" style="margin-bottom:60px">
+    <div class="stat-card">
+      <div class="stat-icon blue">🛡️</div>
+      <div>
+        <div class="stat-value">8</div>
+        <div class="stat-label">Cmds modération</div>
+      </div>
+    </div>
+    <div class="stat-card" style="animation-delay:.1s">
+      <div class="stat-icon gold">💰</div>
+      <div>
+        <div class="stat-value">7</div>
+        <div class="stat-label">Cmds économie</div>
+      </div>
+    </div>
+    <div class="stat-card" style="animation-delay:.2s">
+      <div class="stat-icon green">⭐</div>
+      <div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Cmds XP</div>
+      </div>
+    </div>
+    <div class="stat-card" style="animation-delay:.3s">
+      <div class="stat-icon red">🎉</div>
+      <div>
+        <div class="stat-value">2</div>
+        <div class="stat-label">Cmds giveaway</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMANDES -->
+  <div class="section" id="commandes">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Toutes les commandes</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="highlight">
+      <strong>Légende :</strong>
+      &nbsp;<span style="background:rgba(201,168,76,0.15);color:var(--gold);padding:2px 7px;border-radius:3px;font-size:10px;">STAFF</span> — Réservé au staff &nbsp;
+      <span style="background:rgba(46,91,186,0.15);color:#7aaaf8;padding:2px 7px;border-radius:3px;font-size:10px;">TOUS</span> — Accessible à tous &nbsp;
+      <span style="background:rgba(139,26,42,0.15);color:#e07080;padding:2px 7px;border-radius:3px;font-size:10px;">ADMIN</span> — Administrateurs uniquement
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Rechercher une commande..." oninput="filterCmds(this.value)">
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <div id="cmd-list">
+
+      <!-- MODÉRATION -->
+      <div class="cmd-category" data-cat="moderation">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">🔨</div>
+          <span class="cmd-cat-name">Modération</span>
+          <span class="cmd-count">10 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/ban</span><span class="cmd-desc">Bannir définitivement un membre du serveur.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/kick</span><span class="cmd-desc">Expulser un membre (il peut revenir).</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/mute</span><span class="cmd-desc">Rendre muet un membre pour X minutes.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/unmute</span><span class="cmd-desc">Retirer le mute d'un membre.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/warn</span><span class="cmd-desc">Avertir un membre. Auto-mute à 3 warns, ban à 5.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/warns</span><span class="cmd-desc">Voir les avertissements d'un membre.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/clearwarn</span><span class="cmd-desc">Effacer tous les avertissements d'un membre.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/clear</span><span class="cmd-desc">Supprimer jusqu'à 100 messages en masse.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/antiraid</span><span class="cmd-desc">Activer/désactiver la protection anti-raid.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/addbannedword</span><span class="cmd-desc">Ajouter un mot au filtre automatique.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- ACCUEIL -->
+      <div class="cmd-category" data-cat="accueil">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">👋</div>
+          <span class="cmd-cat-name">Accueil & Vérification</span>
+          <span class="cmd-count">2 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/setrules</span><span class="cmd-desc">Poster les règles avec le bouton de vérification.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/posterolesselect</span><span class="cmd-desc">Poster un menu de sélection de rôles.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- XP -->
+      <div class="cmd-category" data-cat="xp">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">⭐</div>
+          <span class="cmd-cat-name">XP & Niveaux</span>
+          <span class="cmd-count">3 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/niveau</span><span class="cmd-desc">Voir ton niveau XP et ta progression.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/leaderboard</span><span class="cmd-desc">Top 10 des membres les plus actifs.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/setxp</span><span class="cmd-desc">Définir manuellement l'XP d'un membre.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- ÉCONOMIE -->
+      <div class="cmd-category" data-cat="economie">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">💰</div>
+          <span class="cmd-cat-name">Économie</span>
+          <span class="cmd-count">7 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/solde</span><span class="cmd-desc">Voir ton solde de TryzenCoins.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/daily</span><span class="cmd-desc">Récompense quotidienne de 100 coins (1 fois/jour).</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/travailler</span><span class="cmd-desc">Gagner des coins en travaillant (1 fois/heure).</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/donner</span><span class="cmd-desc">Donner des coins à un autre membre.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/slot</span><span class="cmd-desc">Jouer à la machine à sous (x5 jackpot !).</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/pileouface</span><span class="cmd-desc">Parier sur pile ou face (x2 si gagné).</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/addcoins</span><span class="cmd-desc">Ajouter des coins à un membre.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- BOUTIQUE -->
+      <div class="cmd-category" data-cat="boutique">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">🛒</div>
+          <span class="cmd-cat-name">Boutique</span>
+          <span class="cmd-count">4 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/shop</span><span class="cmd-desc">Voir la boutique et les articles disponibles.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/acheter</span><span class="cmd-desc">Acheter un article avec ses TryzenCoins.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/additem</span><span class="cmd-desc">Ajouter un article à la boutique.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/removeitem</span><span class="cmd-desc">Supprimer un article de la boutique.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- FUN -->
+      <div class="cmd-category" data-cat="fun">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">😂</div>
+          <span class="cmd-cat-name">Fun & Social</span>
+          <span class="cmd-count">7 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/blague</span><span class="cmd-desc">Une blague aléatoire pour détendre l'atmosphère.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/8ball</span><span class="cmd-desc">Pose une question à la boule magique.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/dé</span><span class="cmd-desc">Lancer un dé à N faces.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/câlin</span><span class="cmd-desc">Faire un câlin à un membre.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/gifler</span><span class="cmd-desc">Gifler quelqu'un (pour rire !).</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/bisou</span><span class="cmd-desc">Faire un bisou à un membre.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/sondage</span><span class="cmd-desc">Créer un sondage avec jusqu'à 5 options.</span><span class="cmd-badge badge-all">TOUS</span></div>
+        </div>
+      </div>
+
+      <!-- IMAGES -->
+      <div class="cmd-category" data-cat="images">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">🖼️</div>
+          <span class="cmd-cat-name">Images & Animaux</span>
+          <span class="cmd-count">4 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/chat</span><span class="cmd-desc">Photo de chat aléatoire 🐱</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/chien</span><span class="cmd-desc">Photo de chien aléatoire 🐶</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/renard</span><span class="cmd-desc">Photo de renard aléatoire 🦊</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/panda</span><span class="cmd-desc">Photo de panda aléatoire 🐼</span><span class="cmd-badge badge-all">TOUS</span></div>
+        </div>
+      </div>
+
+      <!-- JEUX -->
+      <div class="cmd-category" data-cat="jeux">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">🎲</div>
+          <span class="cmd-cat-name">Mini-Jeux</span>
+          <span class="cmd-count">2 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/quiz</span><span class="cmd-desc">Lance une question de quiz. Tu as 30 secondes !</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/chifoumi</span><span class="cmd-desc">Jouer à Pierre-Feuille-Ciseaux contre le bot.</span><span class="cmd-badge badge-all">TOUS</span></div>
+        </div>
+      </div>
+
+      <!-- TICKETS -->
+      <div class="cmd-category" data-cat="tickets">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">🎫</div>
+          <span class="cmd-cat-name">Tickets & Support</span>
+          <span class="cmd-count">2 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/panticket</span><span class="cmd-desc">Poster le panel d'ouverture de ticket.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/fermerticket</span><span class="cmd-desc">Fermer le ticket actuel (5s de délai).</span><span class="cmd-badge badge-all">TOUS</span></div>
+        </div>
+      </div>
+
+      <!-- GIVEAWAY -->
+      <div class="cmd-category" data-cat="giveaway">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">🎉</div>
+          <span class="cmd-cat-name">Giveaway</span>
+          <span class="cmd-count">2 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/giveaway</span><span class="cmd-desc">Lancer un giveaway avec durée, nb de gagnants et lot.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/reroll</span><span class="cmd-desc">Retirer au sort un nouveau gagnant.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="cmd-category" data-cat="faq">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">❓</div>
+          <span class="cmd-cat-name">FAQ</span>
+          <span class="cmd-count">3 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/faq</span><span class="cmd-desc">Voir toutes les questions fréquentes du serveur.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/addfaq</span><span class="cmd-desc">Ajouter une question/réponse à la FAQ.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/removefaq</span><span class="cmd-desc">Supprimer une entrée de la FAQ.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- NOTIFS -->
+      <div class="cmd-category" data-cat="notifications">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">📡</div>
+          <span class="cmd-cat-name">Notifications</span>
+          <span class="cmd-count">3 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/addtwitch</span><span class="cmd-desc">Activer les notifications de stream Twitch.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/removetwitch</span><span class="cmd-desc">Désactiver les notifications d'un streamer.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/listnotifs</span><span class="cmd-desc">Voir toutes les notifications configurées.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- IA -->
+      <div class="cmd-category" data-cat="ia">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">🤖</div>
+          <span class="cmd-cat-name">Intelligence Artificielle</span>
+          <span class="cmd-count">1 commande</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/ask</span><span class="cmd-desc">Poser une question à l'IA intégrée (GPT-3.5).</span><span class="cmd-badge badge-all">TOUS</span></div>
+        </div>
+      </div>
+
+      <!-- ADMIN -->
+      <div class="cmd-category" data-cat="admin">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">⚙️</div>
+          <span class="cmd-cat-name">Administration</span>
+          <span class="cmd-count">4 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/annonce</span><span class="cmd-desc">Envoyer une annonce dans le channel dédié.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/embed</span><span class="cmd-desc">Envoyer un embed personnalisé avec couleur.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/say</span><span class="cmd-desc">Faire parler le bot dans un channel.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+          <div class="cmd-item"><span class="cmd-name">/botstatus</span><span class="cmd-desc">Changer le statut et l'activité du bot.</span><span class="cmd-badge badge-staff">STAFF</span></div>
+        </div>
+      </div>
+
+      <!-- INFO -->
+      <div class="cmd-category" data-cat="info">
+        <div class="cmd-cat-header">
+          <div class="cmd-cat-icon">ℹ️</div>
+          <span class="cmd-cat-name">Informations</span>
+          <span class="cmd-count">4 commandes</span>
+        </div>
+        <div class="cmd-grid">
+          <div class="cmd-item"><span class="cmd-name">/serverinfo</span><span class="cmd-desc">Voir les informations détaillées du serveur.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/userinfo</span><span class="cmd-desc">Voir le profil complet d'un membre.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/avatar</span><span class="cmd-desc">Voir l'avatar en grand format d'un membre.</span><span class="cmd-badge badge-all">TOUS</span></div>
+          <div class="cmd-item"><span class="cmd-name">/ping</span><span class="cmd-desc">Voir la latence actuelle du bot.</span><span class="cmd-badge badge-all">TOUS</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="divider"></div>
+
+  <!-- FONCTIONNALITÉS -->
+  <div class="section" id="fonctionnalites">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Fonctionnalités automatiques</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:14px">🛡️</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:8px">Anti-Spam</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">Si un membre envoie 5+ messages en 5 secondes, il est automatiquement mute pendant 5 minutes.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:14px">🤬</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:8px">Filtre de mots</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">Les messages contenant des mots interdits sont supprimés automatiquement. Configurable avec /addbannedword.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:14px">👋</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:8px">Bienvenue auto</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">Chaque nouveau membre reçoit un embed de bienvenue et le rôle automatique configuré.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:14px">⭐</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:8px">XP automatique</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">Chaque message rapporte 10 XP (cooldown 60s). Level up automatique avec notification et rôles récompenses.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:14px">❓</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:8px">FAQ intelligente</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">Le bot détecte les questions posées dans le chat et répond automatiquement si une entrée FAQ correspond.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:14px">📡</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:8px">Notifs Twitch</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">Vérifie toutes les 2 minutes si un streamer configuré est en live et envoie une notification automatique.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    Fait avec ❤️ — <span>TryzenBot</span> — Tous droits réservés
+  </div>
+</footer>
+
+<script>
+function filterCmds(val) {
+  val = val.toLowerCase().trim();
+  document.querySelectorAll('.cmd-category').forEach(cat => {
+    let hasVisible = false;
+    cat.querySelectorAll('.cmd-item').forEach(item => {
+      const name = item.querySelector('.cmd-name').textContent.toLowerCase();
+      const desc = item.querySelector('.cmd-desc').textContent.toLowerCase();
+      const show = !val || name.includes(val) || desc.includes(val);
+      item.style.display = show ? '' : 'none';
+      if (show) hasVisible = true;
+    });
+    cat.style.display = (!val || hasVisible) ? '' : 'none';
+  });
+}
+
+// Animation au scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.cmd-category, .card, .stat-card, .config-item').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(16px)';
+  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
